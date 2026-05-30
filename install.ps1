@@ -6,10 +6,14 @@ $ErrorActionPreference = "Stop"
 $Repo = "memlinkdotdev/wslink"
 
 if (-not $Version) {
-    Write-Host "Detecting latest release..." -ForegroundColor Gray
-    $api = Invoke-RestMethod -Uri "https://api.github.com/repos/$Repo/releases/latest" -UseBasicParsing
-    $Version = $api.tag_name
-    Write-Host "  Latest: $Version" -ForegroundColor Gray
+    # Default to latest known version; API override below as a bonus
+    $Version = "v0.1.3"
+    try {
+        $api = Invoke-RestMethod -Uri "https://api.github.com/repos/$Repo/releases/latest" -UseBasicParsing
+        $Version = $api.tag_name
+    } catch {
+        # fallback to hardcoded default
+    }
 }
 
 $DestDir = "$env:LOCALAPPDATA\wslink"
