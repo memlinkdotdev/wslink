@@ -20,8 +20,8 @@
     <StackTraceSupport>false</StackTraceSupport>
     <UseNativeHttpHandler>true</UseNativeHttpHandler>
     <UseSystemResourceKeys>true</UseSystemResourceKeys>
-    <Version>0.1.0</Version>
-    <FileVersion>0.1.0</FileVersion>
+    <Version>0.1.1</Version>
+    <FileVersion>0.1.1</FileVersion>
   </PropertyGroup>
 
 </Project>
