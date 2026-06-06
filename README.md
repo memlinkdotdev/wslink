@@ -26,6 +26,20 @@ Direct TCP proxy — no `netsh`, no `iptables`, no admin, no leftover state. Pre
 
 ## Install
 
+### One-line installer
+
+**Windows (PowerShell):**
+```powershell
+irm https://raw.githubusercontent.com/memlinkdotdev/wslink/main/install.ps1 | iex
+```
+
+**Linux / macOS:**
+```bash
+curl -fsSL https://raw.githubusercontent.com/memlinkdotdev/wslink/main/install.sh | bash
+```
+
+### Manual
+
 Grab a binary from the [latest release](https://github.com/memlinkdotdev/wslink/releases):
 
 | OS      | Arch    | Binary                                |
