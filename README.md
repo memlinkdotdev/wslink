@@ -28,12 +28,12 @@ Direct TCP proxy — no `netsh`, no `iptables`, no admin, no leftover state. Pre
 
 ### One-line installer
 
-**Windows (PowerShell):**
+**Windows**
 ```powershell
 irm https://raw.githubusercontent.com/aiustantdotdev/wslink/main/install.ps1 | iex
 ```
 
-**Linux / macOS:**
+**Linux**
 ```bash
 curl -fsSL https://raw.githubusercontent.com/aiustantdotdev/wslink/main/install.sh | bash
 ```
