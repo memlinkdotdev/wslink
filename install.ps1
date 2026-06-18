@@ -1,8 +1,8 @@
 # wslink installer (Windows)
-# irm https://raw.githubusercontent.com/aiustantdotdev/wslink/main/install.ps1 | iex
+# irm https://raw.githubusercontent.com/pyrofast/wslink/main/install.ps1 | iex
 
 $ErrorActionPreference = 'Stop'
-$repo       = 'aiustantdotdev/wslink'
+$repo       = 'pyrofast/wslink'
 $binName    = 'wslink.exe'
 $installDir = Join-Path $env:LOCALAPPDATA 'wslink'
 

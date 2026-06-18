@@ -17,7 +17,7 @@ import (
 	"time"
 )
 
-const version = "0.1.0"
+const version = "0.3.0"
 
 func main() {
 	log.SetFlags(0)
@@ -33,7 +33,7 @@ func main() {
 	)
 
 	flag.StringVar(&connect, "connect", "", "Target host:port directly (skips auto-detect)")
-	flag.StringVar(&listenAddr, "listen", "0.0.0.0", "Address to listen on")
+	flag.StringVar(&listenAddr, "listen", "127.0.0.1", "Address to listen on")
 	flag.StringVar(&wslName, "wsl-name", "", "WSL distro name (Windows only)")
 	flag.StringVar(&windowsHost, "windows-host", "", "Windows host IP (WSL only)")
 	flag.Parse()
@@ -44,7 +44,7 @@ func main() {
 	}
 
 	if flag.NArg() < 1 {
-		fmt.Println(`wslink — WSL ↔ Windows port bridge
+		fmt.Println(`wslink - WSL to Windows port bridge
 
 Usage:
   wslink forward <port> [flags]
@@ -52,7 +52,7 @@ Usage:
 
 Flags:
   --connect <host:port>    Target directly (skip auto-detect)
-  --listen <addr>          Listen address (default 0.0.0.0)
+  --listen <addr>          Listen address (default 127.0.0.1)
   --wsl-name <distro>      WSL distro name (Windows only)
   --windows-host <ip>      Windows host IP (WSL only)
   --version                Print version and exit
@@ -77,6 +77,9 @@ Examples:
 	if err != nil {
 		log.Fatalf("Invalid port: %s", portStr)
 	}
+	if port < 1 || port > 65535 {
+		log.Fatalf("Port out of range (1-65535): %d", port)
+	}
 
 	var target string
 	if connect != "" {
@@ -85,7 +88,7 @@ Examples:
 		target = resolveTarget(port, wslName, windowsHost)
 	}
 
-	log.Printf("Forwarding %s:%d → %s", listenAddr, port, target)
+	log.Printf("Forwarding %s:%d to %s", listenAddr, port, target)
 
 	startProxy(listenAddr, port, target)
 }
@@ -228,7 +231,7 @@ func handleConn(id int64, src net.Conn, target string) {
 	}
 	defer dst.Close()
 
-	log.Printf("[%d] open  %s ↔ %s", id, src.RemoteAddr(), target)
+	log.Printf("[%d] open  %s - %s", id, src.RemoteAddr(), target)
 
 	var wg sync.WaitGroup
 	wg.Add(2)
@@ -245,12 +248,12 @@ func handleConn(id int64, src net.Conn, target string) {
 	}()
 
 	wg.Wait()
-	log.Printf("[%d] close %s ↔ %s", id, src.RemoteAddr(), target)
+	log.Printf("[%d] close %s - %s", id, src.RemoteAddr(), target)
 }
 
 func runCmd(name string, args ...string) (string, error) {
 	cmd := exec.Command(name, args...)
-	out, err := cmd.Output()
+	out, err := cmd.CombinedOutput()
 	if err != nil {
 		return "", err
 	}

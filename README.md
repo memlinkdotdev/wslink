@@ -4,25 +4,25 @@
 
 ## Problem
 
-WSL2 has its own virtual network. TCP services on `localhost` inside WSL are not always reachable from Windows (and vice versa) — depends on WSL version, distro state, and corporate proxies. The Windows tooling (`netsh interface portproxy`, `wsl --list`) requires admin, gets out of sync, and breaks on reboot.
+WSL2 has its own virtual network. TCP services on `localhost` inside WSL are not always reachable from Windows (and vice versa) - depends on WSL version, distro state, and corporate proxies. The Windows tooling (`netsh interface portproxy`, `wsl --list`) requires admin, gets out of sync, and breaks on reboot.
 
 ## Solution
 
 `wslink` is a single Go binary that runs on **either side** and proxies TCP traffic:
 
 ```
-Windows side:        wslink forward 4444           listens 0.0.0.0:4444
-                                                       │
-                                                       └─→ WSL distro IP:4444
+Windows side:        wslink forward 4444           listens 127.0.0.1:4444
+                                                       |
+                                                       +--> WSL distro IP:4444
                                                           (auto-detected)
 
-WSL side:            wslink forward 4444           listens 0.0.0.0:4444
-                                                       │
-                                                       └─→ Windows host IP:4444
+WSL side:            wslink forward 4444           listens 127.0.0.1:4444
+                                                       |
+                                                       +--> Windows host IP:4444
                                                           (auto-detected from /etc/resolv.conf)
 ```
 
-Direct TCP proxy — no `netsh`, no `iptables`, no admin, no leftover state. Press Ctrl-C and it's gone.
+Direct TCP proxy - no `netsh`, no `iptables`, no admin, no leftover state. Press Ctrl-C and it's gone.
 
 ## Install
 
@@ -30,17 +30,17 @@ Direct TCP proxy — no `netsh`, no `iptables`, no admin, no leftover state. Pre
 
 **Windows**
 ```powershell
-irm https://raw.githubusercontent.com/aiustantdotdev/wslink/main/install.ps1 | iex
+irm https://raw.githubusercontent.com/pyrofast/wslink/main/install.ps1 | iex
 ```
 
 **Linux**
 ```bash
-curl -fsSL https://raw.githubusercontent.com/aiustantdotdev/wslink/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/pyrofast/wslink/main/install.sh | bash
 ```
 
 ### Manual
 
-Grab a binary from the [latest release](https://github.com/aiustantdotdev/wslink/releases):
+Grab a binary from the [latest release](https://github.com/pyrofast/wslink/releases):
 
 | OS      | Arch    | Binary                                |
 | ------- | ------- | ------------------------------------- |
@@ -74,33 +74,9 @@ wslink forward 4444 --listen 127.0.0.1
 wslink forward <port> [flags]
 
   --connect <host:port>    Target directly (skip auto-detect)
-  --listen <addr>          Listen address (default 0.0.0.0)
+  --listen <addr>          Listen address (default 127.0.0.1)
   --wsl-name <distro>      WSL distro name (Windows only)
   --windows-host <ip>      Windows host IP (WSL only)
-```
-
-## Integration with memlink
-
-If you run `memlink` daemon inside WSL, run `wslink` on Windows to expose it:
-
-```bash
-# In WSL
-memlink serve --daemon          # daemon listens on 127.0.0.1:4444
-
-# In Windows PowerShell
-wslink forward 4444             # bridges Windows:4444 → WSL:4444
-```
-
-Now any Windows agent can hit `http://localhost:4444/mcp` to reach the memlink daemon in WSL.
-
-Or run memlink on Windows and bridge the other way:
-
-```powershell
-# In Windows PowerShell
-memlink serve --daemon          # daemon listens on 127.0.0.1:4444
-
-# In WSL
-wslink forward 4444             # bridges WSL:4444 → Windows:4444
 ```
 
 ## Requirements
@@ -115,12 +91,12 @@ wslink forward 4444             # bridges WSL:4444 → Windows:4444
 
 ```
 wslink (Go, statically linked)
-  ├── Auto-detect target
-  │     Windows → wsl.exe --list + hostname -I
-  │     WSL     → /etc/resolv.conf nameserver
-  ├── TCP listener (net.Listen)
-  └── Per-connection goroutine
-        └─ io.Copy bidirectional proxy
+  |-- Auto-detect target
+  |     Windows -> wsl.exe --list + hostname -I
+  |     WSL     -> /etc/resolv.conf nameserver
+  |-- TCP listener (net.Listen)
+  |-- Per-connection goroutine
+        |-- io.Copy bidirectional proxy
 ```
 
-One goroutine per connection, two `io.Copy` goroutines for the bidirectional pipe. Releases are 1-2 MB statically linked binaries — no runtime, no CGO, no libc.
+One goroutine per connection, two `io.Copy` goroutines for the bidirectional pipe. Releases are 1-2 MB statically linked binaries - no runtime, no CGO, no libc.

@@ -1,3 +1,3 @@
-module github.com/memlinkdotdev/wslink
+module github.com/pyrofast/wslink
 
 go 1.22
