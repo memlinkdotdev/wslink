@@ -10,16 +10,19 @@ WSL2 has its own virtual network. TCP services on `localhost` inside WSL are not
 
 `wslink` is a single Go binary that runs on **either side** and proxies TCP traffic:
 
-```
-Windows side:        wslink forward 4444           listens 127.0.0.1:4444
-                                                       |
-                                                       +--> WSL distro IP:4444
-                                                          (auto-detected)
-
-WSL side:            wslink forward 4444           listens 127.0.0.1:4444
-                                                       |
-                                                       +--> Windows host IP:4444
-                                                          (auto-detected from /etc/resolv.conf)
+```mermaid
+flowchart TD
+    A[User runs wslink forward 4444] --> B{Which OS?}
+    B -->|Windows| C[wsl.exe --list --running]
+    C --> D[hostname -I inside distro]
+    D --> E[Target: WSL IP + port]
+    B -->|WSL/Linux| F[/etc/resolv.conf]
+    F --> G[Parse nameserver = Windows host IP]
+    G --> H[Target: Windows IP + port]
+    E --> I[Listen on 127.0.0.1:4444]
+    H --> I
+    I --> J[Accept TCP connections]
+    J --> K[Bidirectional io.Copy proxy]
 ```
 
 Direct TCP proxy - no `netsh`, no `iptables`, no admin, no leftover state. Press Ctrl-C and it's gone.
