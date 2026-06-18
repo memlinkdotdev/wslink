@@ -54,21 +54,54 @@ Grab a binary from the [latest release](https://github.com/pyrofast/wslink/relea
 
 ## Usage
 
+You run `wslink` on the side **where the client connects**. It forwards the port to the other side.
+
+### From Windows (reach a service inside WSL)
+
+Your app runs in WSL, you want to hit it from Windows:
+
 ```bash
-# Auto-detect target
+# WSL side: start your service (example)
+python3 -m http.server 8000
+
+# Windows side: run wslink to bridge
 wslink forward 8000
+# Now you can open http://127.0.0.1:8000 in Windows browser
+```
 
-# From Windows: specify WSL distro
+If you have multiple WSL distros, pick one:
+
+```bash
 wslink forward 8000 --wsl-name Ubuntu
+```
 
-# From WSL: specify Windows host IP
+### From WSL (reach a service on Windows)
+
+Your app runs on Windows, you want to hit it from WSL:
+
+```bash
+# Windows side: start your service (example)
+python -m http.server 8000
+
+# WSL side: run wslink to bridge
+wslink forward 8000
+# Now you can open http://127.0.0.1:8000 inside WSL
+```
+
+If auto-detect fails, specify the Windows IP:
+
+```bash
 wslink forward 8000 --windows-host 172.20.0.1
+```
 
+### Advanced
+
+```bash
 # Skip auto-detect: target host:port directly
 wslink forward 8000 --connect 192.168.1.5:8000
 
-# Bind to specific address
-wslink forward 8000 --listen 127.0.0.1
+# Expose to LAN (not just localhost)
+wslink forward 8000 --listen 0.0.0.0
 ```
 
 ## Flags
