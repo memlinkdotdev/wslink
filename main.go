@@ -163,9 +163,11 @@ func listRunningWslDistros() []string {
 	if err != nil || out == "" {
 		return nil
 	}
+	// wsl.exe may output UTF-16LE with embedded null bytes
+	out = strings.ReplaceAll(out, "\x00", "")
 	var distros []string
 	for _, line := range strings.Split(strings.TrimSpace(out), "\n") {
-		line = strings.TrimRight(line, " \t\r\x00")
+		line = strings.TrimSpace(line)
 		if line != "" {
 			distros = append(distros, line)
 		}
@@ -176,6 +178,7 @@ func listRunningWslDistros() []string {
 func getWslIp(distro string) string {
 	out, err := runCmd("wsl.exe", "-d", distro, "--", "hostname", "-I")
 	if err == nil {
+		out = strings.ReplaceAll(out, "\x00", "")
 		ip := strings.TrimSpace(strings.Split(out, " ")[0])
 		if ip != "" {
 			return ip
@@ -184,6 +187,7 @@ func getWslIp(distro string) string {
 
 	out, err = runCmd("wsl.exe", "-d", distro, "--", "ip", "addr", "show", "eth0")
 	if err == nil {
+		out = strings.ReplaceAll(out, "\x00", "")
 		for _, line := range strings.Split(out, "\n") {
 			line = strings.TrimSpace(line)
 			if strings.HasPrefix(line, "inet ") {
