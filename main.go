@@ -58,10 +58,10 @@ Flags:
   --version                Print version and exit
 
 Examples:
-  wslink forward 4444              # Auto-detect target
-  wslink 4444 --connect 192.168.1.5:4444
-  wslink forward 4444 --wsl-name Ubuntu
-  wslink forward 4444 --windows-host 172.20.0.1`)
+  wslink forward 8000              # Auto-detect target
+  wslink 8000 --connect 192.168.1.5:8000
+  wslink forward 8000 --wsl-name Ubuntu
+  wslink forward 8000 --windows-host 172.20.0.1`)
 		return
 	}
 

@@ -12,14 +12,14 @@ WSL2 has its own virtual network. TCP services on `localhost` inside WSL are not
 
 ```mermaid
 flowchart TD
-    A[User runs wslink forward 4444] --> B{Which OS?}
+    A[User runs wslink forward 8000] --> B{Which OS?}
     B -->|Windows| C[wsl.exe --list --running]
     C --> D[hostname -I inside distro]
     D --> E[Target: WSL IP + port]
     B -->|WSL/Linux| F["/etc/resolv.conf"]
     F --> G[Parse nameserver = Windows host IP]
     G --> H[Target: Windows IP + port]
-    E --> I[Listen on 127.0.0.1:4444]
+    E --> I[Listen on 127.0.0.1:8000]
     H --> I
     I --> J[Accept TCP connections]
     J --> K[Bidirectional io.Copy proxy]
@@ -56,19 +56,19 @@ Grab a binary from the [latest release](https://github.com/pyrofast/wslink/relea
 
 ```bash
 # Auto-detect target
-wslink forward 4444
+wslink forward 8000
 
 # From Windows: specify WSL distro
-wslink forward 4444 --wsl-name Ubuntu
+wslink forward 8000 --wsl-name Ubuntu
 
 # From WSL: specify Windows host IP
-wslink forward 4444 --windows-host 172.20.0.1
+wslink forward 8000 --windows-host 172.20.0.1
 
 # Skip auto-detect: target host:port directly
-wslink forward 4444 --connect 192.168.1.5:4444
+wslink forward 8000 --connect 192.168.1.5:8000
 
 # Bind to specific address
-wslink forward 4444 --listen 127.0.0.1
+wslink forward 8000 --listen 127.0.0.1
 ```
 
 ## Flags
