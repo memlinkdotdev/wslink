@@ -1,7 +1,6 @@
 package main
 
 import (
-	"flag"
 	"fmt"
 	"io"
 	"log"
@@ -23,27 +22,43 @@ func main() {
 	log.SetFlags(0)
 	log.SetPrefix("")
 
-	showVersion := flag.Bool("version", false, "Print version and exit")
-
 	var (
 		connect     string
-		listenAddr  string
+		listenAddr  = "127.0.0.1"
 		wslName     string
 		windowsHost string
+		showVersion bool
 	)
 
-	flag.StringVar(&connect, "connect", "", "Target host:port directly (skips auto-detect)")
-	flag.StringVar(&listenAddr, "listen", "127.0.0.1", "Address to listen on")
-	flag.StringVar(&wslName, "wsl-name", "", "WSL distro name (Windows only)")
-	flag.StringVar(&windowsHost, "windows-host", "", "Windows host IP (WSL only)")
-	flag.Parse()
+	args := os.Args[1:]
+	for i := 0; i < len(args); i++ {
+		switch args[i] {
+		case "--version":
+			showVersion = true
+		case "--connect":
+			connect = takeArg(args, &i, "--connect")
+		case "--listen":
+			listenAddr = takeArg(args, &i, "--listen")
+		case "--wsl-name":
+			wslName = takeArg(args, &i, "--wsl-name")
+		case "--windows-host":
+			windowsHost = takeArg(args, &i, "--windows-host")
+		}
+	}
 
-	if *showVersion {
+	if showVersion {
 		fmt.Printf("wslink %s (%s/%s)\n", version, runtime.GOOS, runtime.GOARCH)
 		return
 	}
 
-	if flag.NArg() < 1 {
+	var positional []string
+	for _, a := range args {
+		if !strings.HasPrefix(a, "-") {
+			positional = append(positional, a)
+		}
+	}
+
+	if len(positional) < 1 {
 		fmt.Println(`wslink - WSL to Windows port bridge
 
 Usage:
@@ -66,13 +81,15 @@ Examples:
 	}
 
 	portIdx := 0
-	if flag.Arg(0) == "forward" {
+	if positional[0] == "forward" {
 		portIdx = 1
 	}
-	if flag.NArg() <= portIdx {
+
+	if len(positional) <= portIdx {
 		log.Fatal("Missing port. Usage: wslink forward <port>")
 	}
-	portStr := flag.Arg(portIdx)
+
+	portStr := positional[portIdx]
 	port, err := strconv.Atoi(portStr)
 	if err != nil {
 		log.Fatalf("Invalid port: %s", portStr)
@@ -91,6 +108,15 @@ Examples:
 	log.Printf("Forwarding %s:%d to %s", listenAddr, port, target)
 
 	startProxy(listenAddr, port, target)
+}
+
+func takeArg(args []string, i *int, name string) string {
+	if *i+1 < len(args) {
+		*i++
+		return args[*i]
+	}
+	log.Fatalf("Missing value for %s", name)
+	return ""
 }
 
 func resolveTarget(port int, wslName, windowsHost string) string {
@@ -184,7 +210,23 @@ func resolveWindowsTarget(port int, windowsHost string) string {
 }
 
 func detectWindowsHost() string {
-	// WSL2: Windows IP is the nameserver in /etc/resolv.conf
+	// WSL2: Windows host is the default gateway
+	out, err := runCmd("sh", "-c", "ip route show default")
+	if err == nil {
+		for _, line := range strings.Split(out, "\n") {
+			parts := strings.Fields(line)
+			for i, p := range parts {
+				if p == "via" && i+1 < len(parts) {
+					ip := parts[i+1]
+					if ip != "" {
+						return ip
+					}
+				}
+			}
+		}
+	}
+
+	// Fallback: nameserver in resolv.conf (may be a DNS proxy, not the real host)
 	data, err := os.ReadFile("/etc/resolv.conf")
 	if err != nil {
 		return ""
