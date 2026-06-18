@@ -16,7 +16,7 @@ flowchart TD
     B -->|Windows| C[wsl.exe --list --running]
     C --> D[hostname -I inside distro]
     D --> E[Target: WSL IP + port]
-    B -->|WSL/Linux| F[/etc/resolv.conf]
+    B -->|WSL/Linux| F["/etc/resolv.conf"]
     F --> G[Parse nameserver = Windows host IP]
     G --> H[Target: Windows IP + port]
     E --> I[Listen on 127.0.0.1:4444]
