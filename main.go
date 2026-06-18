@@ -125,7 +125,7 @@ func resolveWslTarget(port int, wslName string) string {
 
 	ip := getWslIp(distro)
 	if ip == "" {
-		log.Fatalf("Could not resolve IP for WSL distro '%s'", distro)
+		log.Fatalf("Could not resolve IP for WSL distro '%s'. Tried: hostname -I and ip addr show eth0", distro)
 	}
 
 	log.Printf("Detected WSL distro: %s (%s)", distro, ip)
@@ -149,10 +149,27 @@ func listRunningWslDistros() []string {
 
 func getWslIp(distro string) string {
 	out, err := runCmd("wsl.exe", "-d", distro, "--", "hostname", "-I")
-	if err != nil {
-		return ""
+	if err == nil {
+		ip := strings.TrimSpace(strings.Split(out, " ")[0])
+		if ip != "" {
+			return ip
+		}
 	}
-	return strings.TrimSpace(strings.Split(out, " ")[0])
+
+	out, err = runCmd("wsl.exe", "-d", distro, "--", "ip", "addr", "show", "eth0")
+	if err == nil {
+		for _, line := range strings.Split(out, "\n") {
+			line = strings.TrimSpace(line)
+			if strings.HasPrefix(line, "inet ") {
+				parts := strings.Fields(line)
+				if len(parts) >= 2 {
+					return strings.Split(parts[1], "/")[0]
+				}
+			}
+		}
+	}
+
+	return ""
 }
 
 func resolveWindowsTarget(port int, windowsHost string) string {
