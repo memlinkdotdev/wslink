@@ -1,0 +1,30 @@
+name: Bug Report
+description: Report something not working
+labels: [bug]
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: What happened?
+    validations:
+      required: true
+  - type: input
+    id: command
+    attributes:
+      label: Command used
+      placeholder: wslink forward 8000
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs / error output
+      render: shell
+  - type: input
+    id: os
+    attributes:
+      label: Running on
+      placeholder: Windows 11 / WSL2 Ubuntu
+    validations:
+      required: true
