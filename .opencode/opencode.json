@@ -2,8 +2,8 @@
   "$schema": "https://opencode.ai/config.json",
   "command": {
     "pwsh": {
-      "description": "Run a PowerShell command on Windows from WSL",
-      "prompt": "Run the following PowerShell command on Windows using the pwsh wrapper: {{input}}"
+      "template": "Run the following PowerShell command on Windows from WSL: {{input}}",
+      "description": "Run a PowerShell command on Windows from WSL"
     }
   }
 }
